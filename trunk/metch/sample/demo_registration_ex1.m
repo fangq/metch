@@ -13,7 +13,7 @@
 %   el: the surface triangles
 %   pt: the point cloud to be registered
 
-disp('(*)First load the mesh and point cloud, hit enter to continue');
+disp('(*)First load the mesh and point cloud. Hit Enter to continue...');
 pause;
 
 load sampledata
@@ -28,7 +28,7 @@ hold on;
 pnum=size(pt,1);
 
 % define a number of point pairs to initialize the registration
-disp('(*)Create 4 mapping pairs to initialize the mapping, hit enter to continue');
+disp('(*)Create 4 mapping pairs to initialize the mapping. Hit Enter to continue...');
 pause;
 
 % select 4 land-marks on the point cloud (specified by their indicies)
@@ -42,14 +42,14 @@ meshselected=no(meshidx,:);
 % calculate the affine mapping using these point pairs
 [A0,b0]=affinemap(ptselected,meshselected)
 
-disp('(*)Display the updated points, hit enter to continue');
+disp('(*)Display the updated points. Hit Enter to continue...');
 pause;
 
 % a rough registration from the selected point pairs
 points_after_initmap=(A0*pt'+repmat(b0(:),1,pnum))';
 plot3(points_after_initmap(:,1),points_after_initmap(:,2),points_after_initmap(:,3),'r.');
 
-disp('(*)Optimize the mapping matrix to fit the surface, hit enter to continue');
+disp('(*)Optimize the mapping matrix to fit the surface. Hit Enter to continue...');
 pause;
 
 % set pmask: if pmask(i) is -1, it is a free nodes to be optimized
@@ -63,8 +63,10 @@ pmask(ptidx)=meshidx;
 % perform mesh registration with Gauss-Newton method using A0/b0 
 % as initial guess
 [A,b,newpos]=regpt2surf(no,el,pt,pmask,A0,b0,ones(12,1),10);
+A
+b
 
-disp('(*)Display the optimized point cloud, hit enter to continue');
+disp('(*)Display the optimized point cloud. Hit Enter to continue...');
 pause;
 
 % update point cloud with the optimized mapping
@@ -72,7 +74,7 @@ points_after_optimize=(A*pt'+repmat(b(:),1,pnum))';
 
 plot3(points_after_optimize(:,1),points_after_optimize(:,2),points_after_optimize(:,3),'g+');
 
-disp('(*)Project the point cloud on the surface, hit enter to continue');
+disp('(*)Project the point cloud on the surface. Hit Enter to continue...');
 pause;
 
 % project the optimized point cloud onto the surface, and make
@@ -82,7 +84,7 @@ nv=nodesurfnorm(no,el);
 [d2surf,cn]=dist2surf(no,nv,points_after_optmize);
 [points_after_proj eid weights]=proj2mesh(no,el,points_after_optimize,nv,cn);
 
-disp('(*)Display the final results, hit enter to continue');
+disp('(*)Display the final results. Hit Enter to continue...');
 pause;
 
 plot3(points_after_proj(:,1),points_after_proj(:,2),points_after_proj(:,3),'c*');
