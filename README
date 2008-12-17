@@ -6,7 +6,7 @@
 ::      Martinos Center for Biomedical Imaging
 ::      Massachusetts General Hospital (Harvard Medical School)
 ::      Bldg. 149, 13th St., Charlestown, MA 02148
-'''Version''': 0.1
+'''Version''': 0.5
 '''License''': GPL v2 or later (see COPYING) 
 '''URL''': http://iso2mesh.sf.net/cgi-bin/index.cgi?metch
 
@@ -235,6 +235,6 @@ and guarantee the conformity of the points to the surface.
 
 == # Acknowledgement ==
 
-This toolbox was developed with the support from NIH 
-grant titled "Dynamic Inverse Solutions for Multimodal Imaging" (R01EB006385)
+This toolbox was developed with the support from NIH grant titled 
+"Dynamic Inverse Solutions for Multimodal Imaging" (R01EB006385)
 
