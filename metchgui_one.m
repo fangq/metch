@@ -82,7 +82,7 @@ if(length(varargin)==2 & isnumeric(varargin{1}))
        
        dat.volume=vol;
        dat.points=pt;
-       handles.output=dat;
+       set(handles.MetchGUI,'userdata',dat);
 
        slice=round(size(vol,3)/2);
        hs=imagesc(vol(:,:,slice),'parent',handles.axMesh);
@@ -112,7 +112,7 @@ if(length(varargin)==3 & isnumeric(varargin{1}))
        dat.node=node;
        dat.elem=elem;
        dat.points=pt;
-       handles.output=dat;
+       set(handles.MetchGUI,'userdata',dat);
 
        drawinit(handles,node,elem,pt)
 end
@@ -147,6 +147,7 @@ rotate3d(gcf,'on');
 %---------------------------------------------------------------------------
 function varargout = metchgui_one_OutputFcn(hObject, eventdata, handles) 
 if(length(handles) & isfield(handles,'output') & isfield(handles,'hasoutput') & handles.hasoutput)
+        handles.output=get(handles.MetchGUI,'userdata');
         varargout{1} =handles.output;
         close(handles.MetchGUI);
 end
@@ -226,7 +227,7 @@ if(length(mapto)~=4 | length(mapfrom)~=4)
         return;
 end
 [A,b]=affinemap(mapfrom,mapto)
-dat=handles.output;
+dat=get(handles.MetchGUI,'userdata');
 dat.A0=A;
 dat.b0=b;
 
@@ -242,7 +243,7 @@ dat.initplot=plot3(newpt(:,1),newpt(:,2),newpt(:,3),'r.','parent',handles.axMesh
 
 dat.fromidx=mapfromidx;
 dat.toidx=maptoidx;
-handles.output=dat;
+set(handles.MetchGUI,'userdata',dat);
 
 %---------------------------------------------------------------------------
 function axPoints_ButtonDownFcn(hObject, eventdata, handles)
@@ -267,7 +268,7 @@ set(lb,'userdata',[get(lb,'userdata');pos]);
 function btAddMeshPt_Callback(hObject, eventdata, handles)
 dat=get(handles.axMesh,'userdata');
 
-dat0=handles.output;
+dat0=get(handles.MetchGUI,'userdata');
 if(isfield(dat0,'volume'))
     dat.pos(:,3)=get(handles.slPos,'value');
 end
@@ -294,7 +295,7 @@ end
 
 %---------------------------------------------------------------------------
 function btOptimize_Callback(hObject, eventdata, handles)
-dat=handles.output;
+dat=get(handles.MetchGUI,'userdata');
 if(isfield(dat,'A0') & isfield(dat,'b0')& isfield(dat,'node')& isfield(dat,'elem')& ...
    isfield(dat,'pointsinit')& isfield(dat,'toidx')& isfield(dat,'fromidx'))
         pmask=-1*ones(size(dat.pointsinit,1),1);
@@ -303,7 +304,7 @@ if(isfield(dat,'A0') & isfield(dat,'b0')& isfield(dat,'node')& isfield(dat,'elem
         dat.A=Anew;
         dat.b=bnew;
         dat.pointsopt=posnew;
-        if(dat.optplot)
+        if(isfield(dat,'optplot') & dat.optplot)
                 delete dat.optplot;
                 dat.optplot=0;
         end
@@ -312,19 +313,19 @@ else
         msgbox('You have to select 4 points and click "Initialize" button first','Error','error');
         return;
 end
-handles.output=dat;
+set(handles.MetchGUI,'userdata',dat);
 
 
 %---------------------------------------------------------------------------
 function slPos_Callback(hObject, eventdata, handles)
-dat=handles.output;
+dat=get(handles.MetchGUI,'userdata');
 if(isfield(dat,'volume'))
         hold(handles.axMesh,'off');
         imagesc(dat.volume(:,:,round(get(hObject,'value'))),'parent',handles.axMesh);
         set(handles.axMesh,'tag','axMesh');
         set(handles.lbZPos,'string',num2str(round(get(hObject,'value'))));
 end
-handles.output=dat;
+set(handles.MetchGUI,'userdata',dat);
 
 %---------------------------------------------------------------------------
 function slPos_CreateFcn(hObject, eventdata, handles)
@@ -334,9 +335,9 @@ end
 
 %--------------------------------------------------------------------------
 function btProj_Callback(hObject, eventdata, handles)
-dat=handles.output;
+dat=get(handles.MetchGUI,'userdata');
 if(isfield(dat,'pointsopt'))
-        if(dat.projplot)
+        if(isfield(dat,'projplot') & dat.projplot)
                 delete dat.projplot;
                 dat.projplot=0;
         end
@@ -349,12 +350,12 @@ else
         msgbox('You have to first select 4 points, then click "Initialize" and "Optimize" button','Error','error');
         return;
 end
-handles.output=dat;
+set(handles.MetchGUI,'userdata',dat);
 
 %--------------------------------------------------------------------------
 function btSaveRes_Callback(hObject, eventdata, handles)
 [filename, pathname] = uiputfile('*.mat', 'Save Metch Workspace as');
-metchsession=handles.output;
+metchsession=get(handles.MetchGUI,'userdata');
 fname=[pathname filename];
 save(fname,'metchsession');
 
@@ -366,14 +367,44 @@ load(fname);
 handle.output=metchsession;
 cla(handles.axMesh);
 cla(handles.axPoints);
-drawinit(handles,dat.node,dat.elem,dat.points);
+drawinit(handles,metchsession.node,metchsession.elem,metchsession.points);
 %--------------------------------------------------------------------------
 function btPlotResults_Callback(hObject, eventdata, handles)
-
 
 function btClose_Callback(hObject, eventdata, handles)
 guidata(hObject,handles);
 uiresume;
+
+function btHelp_Callback(hObject, eventdata, handles)
+helpmsg={
+'Metch GUI: A mesh/volume registration toolbox',
+'',
+'Author: Qianqian Fang <fangq at nmr.mgh.harvard.edu>',
+'        Martinos Center for Biomedical Imaging',
+'        Charlestown, MA 02129, USA',
+'',
+'== Description of the workflow ==',
+'',
+' 1. when the GUI pops up, it will display the mesh and the points,',
+'    you can rotate both plots so that you can identify the matching ',
+'    features',
+' 2. switch on "Select" mode, then, click on a land-mark point on the point',
+'    plot, when a data-tip shows up, click "Add Selected" button',
+' 3. click on the corresponding position on the mesh, and click',
+'    "Add Selected"      ',
+' 4. repeat the above for at least 4 point pairs (you can select more);',
+'    if you want to change views, switch off "Select" box and rotate;',
+'    after rotation, switch on "Select" box again',
+' 5. click "Initialize": this will create the initial mapping using the',
+'    selected point pairs',
+' 6. click "Optimize": this will fit the surface with the whole point cloud',
+' 7. click "Proj2Mesh": this will project the fitted point clouds onto the',
+'    mesh',
+' 8. you can quit the GUI by hit "Close", your results will be saved to reg',
+' 9. close the window '};
+
+helpdlg(helpmsg);
+
 
 % --- Creates and returns a handle to the GUI figure. 
 function h1 = metchgui_one_LayoutFcn(policy)
@@ -396,7 +427,7 @@ appdata.GUIDEOptions = struct(...
     'text', 8, ...
     'checkbox', 2, ...
     'togglebutton', 3, ...
-    'pushbutton', 12, ...
+    'pushbutton', 13, ...
     'slider', 2), ...
     'override', 0, ...
     'release', 13, ...
@@ -953,7 +984,7 @@ h20 = uicontrol(...
 'Parent',h1,...
 'Units','characters',...
 'Callback','metchgui_one(''btAddCloudPt_Callback'',gcbo,[],guidata(gcbo))',...
-'Position',[118.833333333333 2.35714285714286 14.5 1.71428571428571],...
+'Position',[120 2.42857142857143 14.5 1.71428571428571],...
 'String','Add Selected',...
 'Tag','btAddCloudPt',...
 'Behavior',get(0,'defaultuicontrolBehavior'),...
@@ -1098,6 +1129,21 @@ h30 = uicontrol(...
 'Position',[134 -0.0714285714285714 10 1.71428571428571],...
 'String','Close',...
 'Tag','btClose',...
+'Behavior',get(0,'defaultuicontrolBehavior'),...
+'CreateFcn', {@local_CreateFcn, '', appdata} );
+
+appdata = [];
+appdata.lastValidTag = 'btHelp';
+
+h31 = uicontrol(...
+'Parent',h1,...
+'Units','characters',...
+'BackgroundColor',[0.12 0.542 0],...
+'Callback','metchgui_one(''btHelp_Callback'',gcbo,[],guidata(gcbo))',...
+'ForegroundColor',[1 1 1],...
+'Position',[108.166666666667 2.35714285714286 10 1.71428571428571],...
+'String','Help',...
+'Tag','btHelp',...
 'Behavior',get(0,'defaultuicontrolBehavior'),...
 'CreateFcn', {@local_CreateFcn, '', appdata} );
 
