@@ -10,7 +10,7 @@ Metch ChangeLog:
 	1. after extensive debugging, metchgui is now able to 
            perform all critical functionalities of the toolbox; 
            it supports return values and result export/import;
-           we also provided a stand-alone m-file of the GUI
+           I also has a stand-alone m-file version of the GUI
         2. added documentation and demonstration scripts
         3. affinemap now calc. least-square solutions, therefore, it
            accepts point pairs more than or less than 4.
