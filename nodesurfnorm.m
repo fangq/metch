@@ -32,6 +32,11 @@ ev2=repmat(ev,1,3);
 for i=1:ne
   nv(elem(i,:),:)=nv(elem(i,:),:)+reshape(ev2(i,:),3,3)';
 end
-nvnorm=repmat(sqrt(sum(nv.*nv,2)),1,3);
-nv=nv./nvnorm;
+nvnorm=sqrt(sum(nv.*nv,2));
+idx=find(nvnorm>0);
+if(length(idx)<nn)
+	warning('found interior nodes, their norms will be set to zeros; to remove ',...
+                'them, please use removeisolatednodes.m from iso2mesh toolbox'');
+end
+nv(idx,:)=nv(idx,:)./repmat(nvnorm(idx),1,3);
 
