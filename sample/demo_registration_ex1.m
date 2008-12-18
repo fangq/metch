@@ -81,7 +81,7 @@ pause;
 % sure the comformity
 
 nv=nodesurfnorm(no,el);
-[d2surf,cn]=dist2surf(no,nv,points_after_optmize);
+[d2surf,cn]=dist2surf(no,nv,points_after_optimize);
 [points_after_proj eid weights]=proj2mesh(no,el,points_after_optimize,nv,cn);
 
 disp('(*)Display the final results. Hit Enter to continue...');
