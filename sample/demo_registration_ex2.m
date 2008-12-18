@@ -13,6 +13,10 @@
 %   el: the surface triangles
 %   pt: the point cloud to be registered
 
+if(exist('OCTAVE_VERSION')~=0)
+        error('this demo can only be run in matlab, please run demo_registration_ex1 in octave');
+end
+
 load sampledata
 
 

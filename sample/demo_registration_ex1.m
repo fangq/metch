@@ -17,9 +17,13 @@ disp('(*)First load the mesh and point cloud. Hit Enter to continue...');
 pause;
 
 load sampledata
-cla;
+if(exist('OCTAVE_VERSION')~=0)
+	trimesh(el,no(:,1),no(:,2),no(:,3));
+else
+	cla;
+	trisurf(el,no(:,1),no(:,2),no(:,3));
+end
 title('Metch toolbox demonstration');
-trisurf(el,no(:,1),no(:,2),no(:,3));
 axis equal;
 hold on;
 
