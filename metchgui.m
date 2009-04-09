@@ -300,7 +300,11 @@ if(isfield(dat,'A0') & isfield(dat,'b0')& isfield(dat,'node')& isfield(dat,'elem
    isfield(dat,'pointsinit')& isfield(dat,'toidx')& isfield(dat,'fromidx'))
         pmask=-1*ones(size(dat.pointsinit,1),1);
         pmask(dat.fromidx)=dat.toidx;
-        [Anew,bnew,posnew]=regpt2surf(dat.node,dat.elem,dat.points,pmask,dat.A0,dat.b0,ones(12,1),10);
+	if(isfield(dat,'A') & isfield(dat,'b'))
+	        [Anew,bnew,posnew]=regpt2surf(dat.node,dat.elem,dat.points,pmask,dat.A,dat.b,ones(12,1),10);
+	else
+                [Anew,bnew,posnew]=regpt2surf(dat.node,dat.elem,dat.points,pmask,dat.A0,dat.b0,ones(12,1),10);
+	end
         dat.A=Anew;
         dat.b=bnew;
         dat.pointsopt=posnew;

@@ -1,4 +1,4 @@
-function [newpt elemid weight]=proj2mesh(v,f,pt,nv,cn)
+function [newpt elemid weight]=proj2mesh(v,f,pt,nv,cn,radmax)
 %  [newpt elemid weight]=proj2mesh(v,f,pt,nv,cn)
 %
 %  project a point cloud on to the surface mesh (surface can only be triangular)
@@ -16,6 +16,9 @@ function [newpt elemid weight]=proj2mesh(v,f,pt,nv,cn)
 %      cn: a integer vector with the length of p, denoting the closest
 %          surface nodes (indices of v) for each point in p. this 
 %          value can be calculated from dist2surf.m
+%      radmax: if speicified, the search for elements to project will be
+%          limited to those within a sphere of radius radmax centered at
+%          the point to be projected
 %
 %      if nv and cn are not supplied, proj2mesh will project the point
 %      cloud onto the surface by the direction pointing to the centroid
@@ -40,29 +43,42 @@ newpt =zeros(size(pt,1),3);
 elemid=zeros(size(pt,1),1);
 weight=zeros(size(pt,1),3);
 
-if(nargin==5) 
+radlimit=-1;
+
+if(nargin>=5) 
        % if nv and cn are supplied, use nodal norms to project the points
        direction=nv(cn,:);
+       if(nargin>=6) 
+           radlimit=radmax;
+       end
 elseif(nargin==3)
        % otherwise, project toward the centroid
        direction=pt-repmat(cent,size(pt,1),1);
 end
 
 for t=1:size(pt,1)
-
-    % calculate the distance to the centroid
-    dist2=repmat(pt(t,:)',1,enum)-centroid;
-    maxdist2=sum((pt(t,:)-cent).*(pt(t,:)-cent));
-    c0=sum(dist2.*dist2);
-
-    % only search for the elements that are enclosed by a sphere centered at
-    % pt(t,:) passing by the centroid, this may failed under some extreme conditions,
-    % which I ignored here
-    idx=find(c0<maxdist2);
-
+    maxdist=sqrt(sum((pt(t,:)-cent).*(pt(t,:)-cent)));
+    
+    if(radlimit>0)
+        maxdist=radlimit;
+    end
+    
+    idx=find(centroid(1,:)>pt(t,1)-maxdist & ...
+             centroid(1,:)<pt(t,1)+maxdist & ...
+             centroid(2,:)>pt(t,2)-maxdist & ...
+             centroid(2,:)<pt(t,2)+maxdist & ...
+             centroid(3,:)>pt(t,3)-maxdist & ...
+             centroid(3,:)<pt(t,3)+maxdist );
+    
+    dist=centroid(:,idx);
+    dist(1,:)=dist(1,:)-pt(t,1);
+    dist(2,:)=dist(2,:)-pt(t,2);
+    dist(3,:)=dist(3,:)-pt(t,3);
+    c0=sum(dist.*dist);
+    
     % sort the distances to accelate the calculation
-    [c1,sorted]=sort(c0(idx));
-
+    [c1,sorted]=sort(c0);
+    
     for i=1:length(idx)
     
         % project the point along vector direction and calculate the intersection to a plane
