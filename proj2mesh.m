@@ -17,8 +17,8 @@ function [newpt elemid weight]=proj2mesh(v,f,pt,nv,cn,radmax)
 %          surface nodes (indices of v) for each point in p. this 
 %          value can be calculated from dist2surf.m
 %      radmax: if speicified, the search for elements to project will be
-%          limited to those within a sphere of radius radmax centered at
-%          the point to be projected
+%          limited to those within a bounding box with half-edge-length 
+%          of radmax centered at the point to be projected
 %
 %      if nv and cn are not supplied, proj2mesh will project the point
 %      cloud onto the surface by the direction pointing to the centroid
