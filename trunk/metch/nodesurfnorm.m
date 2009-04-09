@@ -35,8 +35,10 @@ end
 nvnorm=sqrt(sum(nv.*nv,2));
 idx=find(nvnorm>0);
 if(length(idx)<nn)
-	warning('found interior nodes, their norms will be set to zeros; to remove ',...
-                'them, please use removeisolatednodes.m from iso2mesh toolbox'');
-end
-nv(idx,:)=nv(idx,:)./repmat(nvnorm(idx),1,3);
+	warning(['found interior nodes, their norms will be set to zeros; to remove ',...
+                'them, please use removeisolatednodes.m from iso2mesh toolbox']);
 
+	nv(idx,:)=nv(idx,:)./repmat(nvnorm(idx),1,3);
+else
+	nv=nv./repmat(nvnorm,1,3);
+end
