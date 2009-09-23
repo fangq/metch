@@ -222,8 +222,8 @@ mapfrom=get(handles.lbPoints,'userdata');
 maptoidx=get(handles.txMapTo,'userdata');
 mapfromidx=get(handles.txMapFrom,'userdata');
 
-if(length(mapto)~=4 | length(mapfrom)~=4)
-        msgbox('You have to select 4 points from the point cloud plot and 4 corresponding points from the mesh','Error','error');
+if(length(mapto)<4 | length(mapfrom)<4)
+        msgbox('You have to select >3 points from the point cloud plot and corresponding points from the mesh','Error','error');
         return;
 end
 [A,b]=affinemap(mapfrom,mapto)
@@ -359,7 +359,17 @@ set(handles.MetchGUI,'userdata',dat);
 %--------------------------------------------------------------------------
 function btSaveRes_Callback(hObject, eventdata, handles)
 [filename, pathname] = uiputfile('*.mat', 'Save Metch Workspace as');
+mapto=get(handles.lbMesh,'userdata');
+mapfrom=get(handles.lbPoints,'userdata');
+
+maptoidx=get(handles.txMapTo,'userdata');
+mapfromidx=get(handles.txMapFrom,'userdata');
+
 metchsession=get(handles.MetchGUI,'userdata');
+if(~isempty(mapto))    metchsession.mapto=mapto; end
+if(~isempty(mapfrom))    metchsession.mapfrom=mapfrom; end
+if(~isempty(maptoidx))    metchsession.maptoidx=maptoidx; end
+if(~isempty(mapfromidx))    metchsession.mapfromidx=mapfromidx; end
 fname=[pathname filename];
 save(fname,'metchsession');
 
