@@ -276,6 +276,9 @@ end
 if(length(dat.pos)==3)
     addselectedpt(dat.pos,dat.idx,handles.lbMesh);
     set(handles.txMapTo,'userdata',[get(handles.txMapTo,'userdata');dat.idx]);
+	dat0.mapto=get(handles.lbMesh,'userdata');
+    dat0.maptoidx=get(handles.txMapTo,'userdata');
+    set(handles.MetchGUI,'userdata',dat0);
 else
         msgbox('No point was selected. Please click on "Select" and select a point on the mesh or point cloud','Error','error');
         return;
@@ -284,10 +287,13 @@ end
 %---------------------------------------------------------------------------
 function btAddCloudPt_Callback(hObject, eventdata, handles)
 dat=get(handles.axPoints,'userdata');
-
+dat0=get(handles.MetchGUI,'userdata');
 if(length(dat.pos)==3)
     addselectedpt(dat.pos,dat.idx,handles.lbPoints);
     set(handles.txMapFrom,'userdata',[get(handles.txMapFrom,'userdata');dat.idx]);
+	dat0.mapfrom=get(handles.lbPoints,'userdata');
+    dat0.mapfromidx=get(handles.txMapFrom,'userdata');
+    set(handles.MetchGUI,'userdata',dat0);
 else
         msgbox('No point was selected. Please click on "Select" and select a point on the mesh or point cloud','Error','error');
         return;
