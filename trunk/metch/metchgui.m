@@ -1,5 +1,5 @@
 function varargout = metchgui(varargin)
-%    alldata = metchgui(node,elem,points) or metchgui(volume,points)
+%    alldata = metchgui(node,elem,points,pface) or metchgui(volume,points,pface)
 %
 %    A GUI to register a point cloud to a mesh or volumetric image
 %  
@@ -12,6 +12,9 @@ function varargout = metchgui(varargin)
 %              triangular mesh, 4 columns for cubic surface mesh)
 %        points: the coordinates (3 columns for x/y/z) of the 
 %              point cloud which you want to register
+%        pface:trianglular surface defined on the point cloud.
+%              pface is optional; if presents, metch will display 
+%              a surface object instead of a point cloud.
 %
 %   the input can also be two parameters in form of metchgui(volume,points), 
 %    where volume is a 3D image (array).
@@ -48,6 +51,7 @@ function varargout = metchgui(varargin)
 %       [node,face,elem]=meshasphere([10 20 15],3,0.5,10);
 %       [no2,fc2]=removeisolatednode(node(:,1:3),face(:,1:3));
 %       alldata = metchgui(no,fc,no2);
+%       % or alldata = metchgui(no,fc,no2,fc2);
 %
 %   Please find more information at http://iso2mesh.sf.net/cgi-bin/index.cgi?metch
 %  
@@ -86,21 +90,28 @@ set(handles.btAddMeshPt,'userdata',[handles.axMesh,handles.btAddMeshPt,handles.b
 set(handles.btAddCloudPt,'userdata',[handles.axMesh,handles.btAddCloudPt,handles.btAddMeshPt]);
 
 % if uses supplied 2 input variables, assume a volume image and a point cloud
-if(length(varargin)==2 & isnumeric(varargin{1}))
+if(isnumeric(varargin{1}) & length(size(varargin{1}))==3)
        vol=varargin{1};
        pt=varargin{2};
        
        dat.volume=vol;
        dat.points=pt;
-       set(handles.MetchGUI,'userdata',dat);
 
        slice=round(size(vol,3)/2);
        hs=imagesc(vol(:,:,slice),'parent',handles.axMesh);
        set(handles.slPos,'max',size(vol,3),'min',1,'value',slice);
-       %plot3(pt(:,1),pt(:,2),pt(:,3),'.','parent',handles.axPoints);
-       ptcolor=(pt-repmat(min(pt),size(pt,1),1))./repmat(max(pt)-min(pt),size(pt,1),1);
-       drawnow;
-       scatter3(pt(:,1),pt(:,2),pt(:,3),3,ptcolor,'filled');
+
+       if(length(varargin)>=3)
+       	 pface=varargin{3};
+       	 dat.pface=pface;
+	 trisurf(pface(:,1:3),pt(:,1),pt(:,2),pt(:,3),'parent',handles.axPoints);
+       else
+         %plot3(pt(:,1),pt(:,2),pt(:,3),'.','parent',handles.axPoints);
+         ptcolor=(pt-repmat(min(pt),size(pt,1),1))./repmat(max(pt)-min(pt),size(pt,1),1);
+         drawnow;
+         scatter3(pt(:,1),pt(:,2),pt(:,3),3,ptcolor,'filled');	
+       end
+       set(handles.MetchGUI,'userdata',dat);
 
        axis(handles.axMesh,'equal');
        axis(handles.axPoints,'equal');
@@ -116,8 +127,8 @@ if(length(varargin)==2 & isnumeric(varargin{1}))
        rotate3d(gcf,'on');
 end
 
-% if uses supplied 3 input variables, assume a surface mesh and a point cloud
-if(length(varargin)==3 & isnumeric(varargin{1}))
+% if uses supplied 3 input variables, assume a surface mesh and a point cloud/surface
+if(length(varargin)>=3 & length(size(varargin{1}))==2)
        node=varargin{1};
        elem=varargin{2};
        pt=varargin{3};
@@ -125,9 +136,13 @@ if(length(varargin)==3 & isnumeric(varargin{1}))
        dat.node=node;
        dat.elem=elem;
        dat.points=pt;
+       if(length(varargin)>=4)
+       	 pface=varargin{4};
+       	 dat.pface=pface;
+       end
        set(handles.MetchGUI,'userdata',dat);
 
-       drawinit(handles,node,elem,pt)
+       drawinit(handles,dat)
 end
 guidata(hObject, handles);
 
@@ -136,17 +151,24 @@ if(handles.hasoutput)
 end
 
 %---------------------------------------------------------------------------
-function drawinit(handles,node,elem,pt)
+function drawinit(handles,dat)
+
+node=dat.node;
+elem=dat.elem;
+pt=dat.points;
 
 hs=trisurf(elem,node(:,1),node(:,2),node(:,3),'parent',handles.axMesh);
 %set(hs,'linestyle','none');
 %set(hs,'facecolor','b','facealpha',0.8);
 
 %plot3(pt(:,1),pt(:,2),pt(:,3),'.','parent',handles.axPoints);
-ptcolor=(pt-repmat(min(pt),size(pt,1),1))./repmat(max(pt)-min(pt),size(pt,1),1);
-drawnow;
-scatter3(pt(:,1),pt(:,2),pt(:,3),3,ptcolor,'filled');
-
+if(~isfield(dat,'pface'))
+	ptcolor=(pt-repmat(min(pt),size(pt,1),1))./repmat(max(pt)-min(pt),size(pt,1),1);
+	drawnow;
+	scatter3(pt(:,1),pt(:,2),pt(:,3),3,ptcolor,'filled');
+else
+	trisurf(dat.pface,pt(:,1),pt(:,2),pt(:,3),'parent',handles.axPoints);
+end
 %hold(handles.axPoints,'on');
 %plot3(pt(5:7,1),pt(5:7,2),pt(5:7,3),'ro','parent',handles.axPoints);
 
@@ -291,7 +313,7 @@ if(isfield(dat0,'volume'))
     dat.pos(:,3)=get(handles.slPos,'value');
 end
 
-if(length(dat.pos)==3)
+if(isfield(dat,'pos'))
     addselectedpt(dat.pos,dat.idx,handles.lbMesh);
     set(handles.txMapTo,'userdata',[get(handles.txMapTo,'userdata');dat.idx]);
 	dat0.mapto=get(handles.lbMesh,'userdata');
@@ -306,7 +328,7 @@ end
 function btAddCloudPt_Callback(hObject, eventdata, handles)
 dat=get(handles.axPoints,'userdata');
 dat0=get(handles.MetchGUI,'userdata');
-if(length(dat.pos)==3)
+if(isfield(dat,'pos'))
     addselectedpt(dat.pos,dat.idx,handles.lbPoints);
     set(handles.txMapFrom,'userdata',[get(handles.txMapFrom,'userdata');dat.idx]);
 	dat0.mapfrom=get(handles.lbPoints,'userdata');
