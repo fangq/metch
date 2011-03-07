@@ -10,6 +10,8 @@ function varargout = metchgui(varargin)
 %        node: node coordinate of the surface mesh (nn x 3)
 %        elem: element list of the surface mesh (3 columns for 
 %              triangular mesh, 4 columns for cubic surface mesh)
+%        points: the coordinates (3 columns for x/y/z) of the 
+%              point cloud which you want to register
 %
 %   the input can also be two parameters in form of metchgui(volume,points), 
 %    where volume is a 3D image (array).
@@ -38,7 +40,15 @@ function varargout = metchgui(varargin)
 %   intends to save, he has to click on "Save Session" button and provides
 %   a mat-file file name. A single structure named "metchsession" will be
 %   stored in this file.
-%  
+%
+%   example: (meshasphere/meshunitsphere are defined in iso2mesh http://iso2mesh.sf.net)
+%
+%       [noderef,faceref,elemref]=meshunitsphere(0.08,10);
+%       [no,fc]=removeisolatednode(noderef(:,1:3),faceref(:,1:3));
+%       [node,face,elem]=meshasphere([10 20 15],3,0.5,10);
+%       [no2,fc2]=removeisolatednode(node(:,1:3),face(:,1:3));
+%       alldata = metchgui(no,fc,no2);
+%
 %   Please find more information at http://iso2mesh.sf.net/cgi-bin/index.cgi?metch
 %  
 %   this function is part of "metch" toobox, see COPYING for license
@@ -87,12 +97,15 @@ if(length(varargin)==2 & isnumeric(varargin{1}))
        slice=round(size(vol,3)/2);
        hs=imagesc(vol(:,:,slice),'parent',handles.axMesh);
        set(handles.slPos,'max',size(vol,3),'min',1,'value',slice);
-       plot3(pt(:,1),pt(:,2),pt(:,3),'.','parent',handles.axPoints);
+       %plot3(pt(:,1),pt(:,2),pt(:,3),'.','parent',handles.axPoints);
+       ptcolor=(pt-repmat(min(pt),size(pt,1),1))./repmat(max(pt)-min(pt),size(pt,1),1);
+       drawnow;
+       scatter3(pt(:,1),pt(:,2),pt(:,3),3,ptcolor,'filled');
 
        axis(handles.axMesh,'equal');
        axis(handles.axPoints,'equal');
        axis(handles.axMesh,'off');
-       box(handles.axPoints,'on');
+       grid(handles.axPoints,'on');
        %axis(handles.axPoints,'off');
        
        set(handles.axMesh,'tag','axMesh');
@@ -128,14 +141,19 @@ function drawinit(handles,node,elem,pt)
 hs=trisurf(elem,node(:,1),node(:,2),node(:,3),'parent',handles.axMesh);
 %set(hs,'linestyle','none');
 %set(hs,'facecolor','b','facealpha',0.8);
-plot3(pt(:,1),pt(:,2),pt(:,3),'.','parent',handles.axPoints);
+
+%plot3(pt(:,1),pt(:,2),pt(:,3),'.','parent',handles.axPoints);
+ptcolor=(pt-repmat(min(pt),size(pt,1),1))./repmat(max(pt)-min(pt),size(pt,1),1);
+drawnow;
+scatter3(pt(:,1),pt(:,2),pt(:,3),3,ptcolor,'filled');
+
 %hold(handles.axPoints,'on');
 %plot3(pt(5:7,1),pt(5:7,2),pt(5:7,3),'ro','parent',handles.axPoints);
 
 axis(handles.axMesh,'equal');
 axis(handles.axPoints,'equal');
 axis(handles.axMesh,'off');
-axis(handles.axPoints,'off');
+%axis(handles.axPoints,'off');
 
 set(handles.axMesh,'tag','axMesh');
 set(handles.axPoints,'tag','axPoints');
