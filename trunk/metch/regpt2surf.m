@@ -90,11 +90,11 @@ for iter=1:maxiter
     
     % weight the matrix (normalization)
     wj=sqrt(sum(J.*J));
-    J=J./repmat(wj,length(dist0),1);
+    J(:,cuplist)=J(:,cuplist)./repmat(wj(cuplist),length(dist0),1);
 
     % calculate the update: J*dC=dL
-    dC=(J\dist0)./wj';
-    C(cuplist)=C(cuplist)-0.5*dC(cuplist);
+    dC=(J(:,cuplist)\dist0)./wj(cuplist)';
+    C(cuplist)=C(cuplist)-0.5*dC;
 
     % get the updated positions with the calculated A and b
     newpos=(reshape(C(1:9),3,3)*p'+repmat(C(end-2:end),1,size(p,1)))';
