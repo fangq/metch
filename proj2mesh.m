@@ -42,7 +42,15 @@ centroid=squeeze(mean(ec,2));
 newpt =zeros(size(pt,1),3);
 elemid=zeros(size(pt,1),1);
 weight=zeros(size(pt,1),3);
-
+[idoldmesh,loc]=ismember(pt,v,'rows');
+idnode=find(idoldmesh);
+if(~isempty(idnode))
+    [tt,ll]=ismember(loc(idnode),f);
+    [p1,p2]=ind2sub(size(f),ll); % p1 is the index in f
+    newpt(idnode,:)=pt(idnode,:);
+    elemid(idnode)=p1;
+    weight(sub2ind(size(weight),idnode,p2))=1;
+end
 radlimit=-1;
 
 if(nargin>=5) 
@@ -57,6 +65,7 @@ elseif(nargin==3)
 end
 
 for t=1:size(pt,1)
+    if(idoldmesh(t)~=0) continue; end
     maxdist=sqrt(sum((pt(t,:)-cent).*(pt(t,:)-cent)));
     
     if(radlimit>0)
